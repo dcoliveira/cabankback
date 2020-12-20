@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Movimentacao;
+use Illuminate\Support\Facades\DB;
 
 class MovimentacaoController extends Controller
 {
@@ -32,6 +33,18 @@ class MovimentacaoController extends Controller
                 ->orderBy('movimentacao.created_at','asc')
                 ->get();
 
+        $historico_deposito = Movimentacao::select('tipo_movimentacao.tipo','movimentacao.valor as R$ Valor', 'movimentacao.created_at as Data'  )
+                ->where('id_tipo_movimentacao','=',2)
+                ->join('tipo_movimentacao','movimentacao.id_tipo_movimentacao','=','tipo_movimentacao.id')
+                ->orderBy('movimentacao.created_at','asc')
+                ->get();
+
+        $historico_saque = Movimentacao::select('tipo_movimentacao.tipo','movimentacao.valor as R$ Valor', 'movimentacao.created_at as Data'  )
+                ->where('id_tipo_movimentacao','=',1)
+                ->join('tipo_movimentacao','movimentacao.id_tipo_movimentacao','=','tipo_movimentacao.id')
+                ->orderBy('movimentacao.created_at','asc')
+                ->get();
+
         $saldo = Movimentacao::all();
         $valorsaldo = 0;
         $deposito = 0;
@@ -49,11 +62,16 @@ class MovimentacaoController extends Controller
          }
          $valorsaldo=$deposito-$saque; 
 
+         $valorsaldo = array(['Saldo' => 'R$ '.$valorsaldo]);
+
          return response()->json([
                 'ultDeposito' => $ultDeposito,
                 'ultSaque' => $ultSaque,
                 'valorsaldo' => $valorsaldo, 
-                'historico' => $historico,  
+                'historico' => $historico,
+                'historico_deposito' => $historico_deposito,  
+                'historico_saque' => $historico_saque,  
+
          ]);
     }
 
